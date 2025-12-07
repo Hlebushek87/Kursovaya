@@ -1,0 +1,18 @@
+stages:
+  - test
+  - deploy
+
+hello_job:
+  stage: test
+  image: alpine:latest
+  script:
+    - echo "Hello, GitLab CI! This is my first pipeline!"
+    - date
+
+# Пока закомментируем этап деплоя, мы вернёмся к нему позже
+#deploy_job:
+#  stage: deploy
+#  script:
+#    - echo "This is where we would deploy our application"
+#  only:
+#    - main
