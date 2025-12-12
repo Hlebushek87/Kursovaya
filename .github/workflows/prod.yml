@@ -16,6 +16,7 @@ jobs:
           fetch-depth: 0
 
       - run: |
+          export BUILDAH_STORAGE_DRIVER=vfs
           . "$(werf ci-env github --as-file)"
           werf converge
         env:
