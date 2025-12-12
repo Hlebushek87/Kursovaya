@@ -1,6 +1,18 @@
+project: kursovaya
 configVersion: 1
-project: myproject
+
 ---
 image: app
+from: python:3.10-slim
 dockerfile: Dockerfile
-context: ./app
+platform: linux/amd64
+context: .
+
+---
+kubernetes:
+  namespace: default
+  deploy:
+    helm:
+      release: kursovaya
+      chart:
+        path: helm
