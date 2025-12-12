@@ -5,16 +5,19 @@ on:
     branches: [ main ]
   workflow_dispatch:
 
+permissions:
+  contents: read
+  packages: write
+
 jobs:
   deploy:
     runs-on: arc-runner-set
     steps:
-      - name: Checkout кода
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Installation of werf            # исправлено: installation
+      - name: Install werf
         uses: werf/actions/install@v2.5
 
       - name: Login to GHCR
@@ -24,16 +27,10 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Werf converge → Production
+      - name: Deploy with werf
         run: |
-          echo "=== Подключение к кластеру ==="
           kubectl cluster-info
-          kubectl get nodes -o wide
-
-          echo "=== Запуск деплоя ==="
-          werf converge \
-            --repo ghcr.io/hlebushek87/kursovaya \
-            --set "image.tag=${{ github.sha::8 }}"
+          werf converge --repo ghcr.io/hlebushek87/kursovaya
         env:
           WERF_ENV: production
           WERF_KUBECONFIG_BASE64: ${{ secrets.KUBECONFIG_BASE64 }}
