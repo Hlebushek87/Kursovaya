@@ -23,7 +23,7 @@ spec:
     spec:
       containers:
         - name: app
-          image: {{ .Values.werf.images.app }}
+          image: {{ .Values.werf.image.app }}
           imagePullPolicy: Always
           command:
             - /bin/sh
