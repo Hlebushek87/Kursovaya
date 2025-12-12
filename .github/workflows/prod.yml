@@ -17,7 +17,8 @@ jobs:
         with:
           fetch-depth: 0
 
-      # Одна строчка — ставим werf v2 + kubectl
+      - run: mkdir -p /var/lib/apt/lists/{partial,auxlists}
+
       - run: |
           apt-get update -qq && \
           apt-get install -y --no-install-recommends curl ca-certificates && \
@@ -26,7 +27,6 @@ jobs:
           install -m 0755 kubectl /usr/local/bin/kubectl && \
           rm -rf /var/lib/apt/lists/*
 
-      # Точно такой же деплой, как у тебя был
       - run: |
           . "$(werf ci-env github --as-file)"
           werf converge --repo ghcr.io/hlebushek87/kursovaya
