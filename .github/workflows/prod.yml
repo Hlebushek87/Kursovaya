@@ -13,21 +13,11 @@ jobs:
   deploy:
     runs-on: arc-runner-set
     steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Install werf
-        uses: werf/actions/install@v2
-
-      - name: Login to GHCR
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Checkout
+        uses: actions/checkout@v4
 
       - name: Deploy with werf
+        image: ghcr.io/werf/werf:2.55.5
         env:
           WERF_BUILDER: buildkit
           WERF_PLATFORM: linux/amd64
@@ -37,4 +27,3 @@ jobs:
           echo $WERF_KUBECONFIG_BASE64 | base64 --decode > /tmp/kubeconfig
           export KUBECONFIG=/tmp/kubeconfig
           werf converge --repo ghcr.io/hlebushek87/kursovaya
-
