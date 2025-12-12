@@ -11,28 +11,37 @@ jobs:
     container:
       image: ghcr.io/werf/werf:2-stable-ubuntu
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v3
         with:
           fetch-depth: 0
 
-      - name: Set up rootless Buildah environment
+      - name: Set up rootless Buildah
         run: |
-          # Указываем rootless драйвер для хранения
+          echo "Setting up rootless Buildah..."
           export BUILDAH_STORAGE_DRIVER=vfs
-          # Убедимся, что пути к бинарникам в PATH
           export PATH=$PATH:/usr/local/bin
-          # Проверяем доступность Buildah
           buildah --version
           buildah info
 
+      - name: Check required tools
+        run: |
+          echo "Checking required tools..."
+          for tool in buildah werf kubectl; do
+            if ! command -v $tool &> /dev/null; then
+              echo "ERROR: $tool is not installed or not in PATH"
+              exit 1
+            else
+              echo "$tool is available: $($tool --version || echo 'version info not available')"
+            fi
+          done
+
       - name: Werf CI converge
         run: |
-          # Добавляем Werf в PATH на случай, если его нет
+          echo "Running Werf converge..."
           export PATH=$PATH:/usr/local/bin
           export BUILDAH_STORAGE_DRIVER=vfs
-          # Подгружаем переменные окружения Werf
           . "$(werf ci-env github --as-file)"
-          # Запускаем deploy
           werf converge
         env:
           WERF_ENV: prod
