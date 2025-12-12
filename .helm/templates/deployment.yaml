@@ -24,7 +24,7 @@ spec:
       containers:
         - name: app
           image: "{{ .Values.werf.image.app.repository }}:{{ .Values.werf.image.app.tag }}"
-          imagePullPolicy: Always
+          magePullPolicy: Always
           command: ["/bin/sh"]
           args:
             - -c
