@@ -1,6 +1,17 @@
 configVersion: 1
-project: myproject
+project: kursovaya   # или myproject — как хочешь, главное уникально
+
 ---
 image: app
 dockerfile: Dockerfile
-context: ./app
+context: ./app       # ← твоя папка с кодом и Dockerfile
+# НЕ указываем platform здесь — будем передавать через флаг в workflow
+
+---
+kubernetes:
+  namespace: default
+  deploy:
+    helm:
+      release: todo-app   # имя релиза в Helm
+      chart:
+        path: helm        # папка с твоим Helm-чартом
