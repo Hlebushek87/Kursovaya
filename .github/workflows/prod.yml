@@ -1,27 +1,44 @@
-name: Test runner is alive
+name: Deploy project to Production
 
 on:
-  workflow_dispatch:
   push:
     branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
 
 jobs:
-  hello:
+  deploy:
     runs-on: arc-runner-set
     steps:
-      - name: Привет от раннера
-        run: |
-          echo "Привет! Я работаю на кластере"
-          echo "Я работаю на кластере"
-          echo "Node: $(hostname)"
-          echo "User: $(whoami)"
-          echo "UID: $(id -u)"
-          echo "CPU: $(nproc)"
-          echo "Memory: $(free -h)"
-          kubectl version --client
-          kubectl get nodes
+      - name: Checkout кода
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-      - name: Просто ещё одна команда (чтобы убедиться)
+      - name: intallation of werf
+        uses: werf/actions/install@v2.5
+
+      - name: Login to GHCR
+        if: success()
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: werf converge
         run: |
-          sleep 10
-          echo "Всё ок, я живой"
+          echo "Подключаемся к кластеру..."
+          kubectl cluster-info
+          kubectl get nodes -o wide
+
+          echo "Запускаем деплой проекта Kursovaya..."
+          werf converge \
+            --repo ghcr.io/hlebushek87/kursovaya \
+            --set "image.tag=${{ github.sha::8 }}"
+        env:
+          WERF_ENV: production
+          WERF_KUBECONFIG_BASE64: ${{ secrets.KUBECONFIG_BASE64 }}
