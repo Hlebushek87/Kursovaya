@@ -15,17 +15,10 @@ jobs:
         with:
           fetch-depth: 0
 
-       run: |
-          docker run --rm -it \
-            --privileged \
-            -v /var/run/docker.sock:/var/run/docker.sock \
-            -v $HOME/.kube:/root/.kube \
-            -v $HOME/.local/share/containers:/root/.local/share/containers \
-            -e WERF_ENV=prod \
-            -e GITHUB_TOKEN=${{ secrets.REGISTRY_CLEANUP_TOKEN }} \
-            -e WERF_KUBECONFIG_BASE64=${{ secrets.KUBE_CONFIG_BASE64_DATA }} \
-            ghcr.io/werf/werf:2-stable-ubuntu \
-            /bin/bash -c '. "$(werf ci-env github --as-file)" && werf converge'
+      - run: |
+          export BUILDAH_STORAGE_DRIVER=vfs
+          . "$(werf ci-env github --as-file)"
+          werf converge
         env:
           WERF_ENV: prod
           GITHUB_TOKEN: ${{ secrets.REGISTRY_CLEANUP_TOKEN }}
