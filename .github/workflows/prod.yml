@@ -16,6 +16,11 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Install Buildah
+        run: |
+          apt-get update
+          apt-get install -y buildah
+
       - name: Set up rootless Buildah
         run: |
           echo "Setting up rootless Buildah..."
