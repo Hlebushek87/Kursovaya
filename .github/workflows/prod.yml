@@ -4,11 +4,7 @@ name: prod
 on:
   push:
     branches: [ main ]
-  workflow_dispatch:
-
-permissions:
-  contents: read
-  packages: write
+  workflow_dispatch
 
 jobs:
   deploy:
