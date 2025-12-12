@@ -7,7 +7,6 @@ on:
 
 jobs:
   prod:
-    name: prod
     runs-on: arc-runner-set
     container:
       image: ghcr.io/werf/werf:2-stable-ubuntu
@@ -18,21 +17,24 @@ jobs:
 
       - name: Set up rootless Buildah environment
         run: |
-
+          # Указываем rootless драйвер для хранения
           export BUILDAH_STORAGE_DRIVER=vfs
-
-
+          # Убедимся, что пути к бинарникам в PATH
+          export PATH=$PATH:/usr/local/bin
+          # Проверяем доступность Buildah
+          buildah --version
           buildah info
 
       - name: Werf CI converge
         run: |
-
+          # Добавляем Werf в PATH на случай, если его нет
+          export PATH=$PATH:/usr/local/bin
+          export BUILDAH_STORAGE_DRIVER=vfs
+          # Подгружаем переменные окружения Werf
           . "$(werf ci-env github --as-file)"
-          
-
+          # Запускаем deploy
           werf converge
         env:
           WERF_ENV: prod
           GITHUB_TOKEN: ${{ secrets.REGISTRY_CLEANUP_TOKEN }}
           WERF_KUBECONFIG_BASE64: ${{ secrets.KUBE_CONFIG_BASE64_DATA }}
-          BUILDAH_STORAGE_DRIVER: vfs
