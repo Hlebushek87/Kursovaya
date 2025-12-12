@@ -34,4 +34,7 @@ jobs:
           WERF_ENV: production
           WERF_KUBECONFIG_BASE64: ${{ secrets.KUBECONFIG_BASE64 }}
         run: |
+          echo $WERF_KUBECONFIG_BASE64 | base64 --decode > /tmp/kubeconfig
+          export KUBECONFIG=/tmp/kubeconfig
           werf converge --repo ghcr.io/hlebushek87/kursovaya
+
