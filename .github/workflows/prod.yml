@@ -8,8 +8,10 @@ on:
 jobs:
   prod:
     runs-on: arc-runner-set
+    # container:
+    #   image: ghcr.io/werf/werf:2-stable-ubuntu
     container:
-      image: ghcr.io/werf/werf:2-stable-ubuntu
+      image: quay.io/werf/werf-buildah:latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
