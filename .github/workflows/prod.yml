@@ -1,3 +1,4 @@
+# .github/workflows/deploy.yml
 name: Deploy project to Production
 
 on:
@@ -18,24 +19,23 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: intallation of werf
+      - name: Installation of werf            # исправлено: installation
         uses: werf/actions/install@v2.5
 
       - name: Login to GHCR
-        if: success()
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: werf converge
+      - name: Werf converge → Production
         run: |
-          echo "Подключаемся к кластеру..."
+          echo "=== Подключение к кластеру ==="
           kubectl cluster-info
           kubectl get nodes -o wide
 
-          echo "Запускаем деплой проекта Kursovaya..."
+          echo "=== Запуск деплоя ==="
           werf converge \
             --repo ghcr.io/hlebushek87/kursovaya \
             --set "image.tag=${{ github.sha::8 }}"
