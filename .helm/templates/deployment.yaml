@@ -2,7 +2,10 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: app
+  labels:
+    app: app
 spec:
+  replicas: 2
   selector:
     matchLabels:
       app: app
@@ -12,5 +15,15 @@ spec:
         app: app
     spec:
       containers:
-      - name: app
-        image: {{ .Values.werf.image.app }}
+        - name: app
+          image: "{{ .Values.werf.image.app.repository }}:{{ .Values.werf.image.app.tag }}"
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8000
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "500m"
