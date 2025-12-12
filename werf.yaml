@@ -12,6 +12,6 @@ kubernetes:
   namespace: default
   deploy:
     helm:
-      release: todo-app   # имя релиза в Helm
+      release: app   # имя релиза в Helm
       chart:
         path: helm        # папка с твоим Helm-чартом
