@@ -6,23 +6,18 @@ on:
 
 jobs:
   prod:
+    name: prod
     runs-on: arc-runner-set
     container:
-      image: ghcr.io/werf/werf:2-stable-ubuntu   # ← вот и всё
-      # --user root можно вообще не писать — внутри уже root
-
+      image: ghcr.io/werf/werf:2-stable-ubuntu
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v3
         with:
           fetch-depth: 0
 
-      # kubectl обычно уже есть, но если вдруг нет — поставим одной строкой
-      - run: |
-          command -v kubectl || curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl" && chmod +x kubectl && mv kubectl /usr/local/bin/
-
       - run: |
           . "$(werf ci-env github --as-file)"
-          werf converge --repo ghcr.io/hlebushek87/kursovaya
+          werf converge
         env:
           WERF_ENV: prod
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
