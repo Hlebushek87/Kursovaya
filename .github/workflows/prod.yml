@@ -1,4 +1,4 @@
-name: prod
+name: CI/CD
 
 on:
   push:
@@ -9,18 +9,32 @@ permissions:
   contents: read
   packages: write
 
+env:
+  WERF_BUILDER: buildkit
+  WERF_PLATFORM: linux/amd64
+
 jobs:
-  deploy:
+  deploy-prod:
+    name: Deploy to Production
     runs-on: arc-runner-set
     steps:
-      - name: Checkout
+      - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-      - name: Deploy with werf
-        image: ghcr.io/werf/werf:2.55.5
+      - name: Install werf
+        uses: werf/actions/install@v2
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Deploy with werf to Production
         env:
-          WERF_BUILDER: buildkit
-          WERF_PLATFORM: linux/amd64
           WERF_ENV: production
           WERF_KUBECONFIG_BASE64: ${{ secrets.KUBECONFIG_BASE64 }}
         run: |
