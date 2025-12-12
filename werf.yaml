@@ -5,7 +5,8 @@ configVersion: 1
 image: app
 from: python:3.10-slim
 dockerfile: Dockerfile
-platform: linux/amd64
+platform:
+  - linux/amd64
 context: .
 
 ---
