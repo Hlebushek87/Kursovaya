@@ -1,5 +1,5 @@
 # .github/workflows/deploy.yml
-name: Deploy project to Production
+name: prod
 
 on:
   push:
