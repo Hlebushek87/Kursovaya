@@ -2,13 +2,20 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: app
+  namespace: {{ .Values.werf.namespace | default "default" }}
   labels:
     app: app
 spec:
-  replicas: 2
+  replicas: 1
+  revisionHistoryLimit: 10
   selector:
     matchLabels:
       app: app
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
   template:
     metadata:
       labels:
@@ -17,13 +24,37 @@ spec:
       containers:
         - name: app
           image: "{{ .Values.werf.image.app.repository }}:{{ .Values.werf.image.app.tag }}"
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
+          command: ["/bin/sh"]
+          args:
+            - -c
+            - |
+              echo "Cleaning up old uvicorn processes..."
+              pkill -f uvicorn || true
+              sleep 3
+              echo "Starting FastAPI app..."
+              exec uvicorn main:app --host 0.0.0.0 --port 8000
           ports:
             - containerPort: 8000
+              protocol: TCP
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 8000
+              scheme: HTTP
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 2
+            failureThreshold: 3
           resources:
             requests:
-              memory: "128Mi"
-              cpu: "100m"
+              cpu: 200m
+              memory: 128Mi
             limits:
-              memory: "256Mi"
-              cpu: "500m"
+              cpu: 500m
+              memory: 256Mi
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 30
+      dnsPolicy: ClusterFirst
