@@ -29,7 +29,6 @@ jobs:
 
       - name: Deploy with werf
         run: |
-          kubectl cluster-info
           werf converge --repo ghcr.io/hlebushek87/kursovaya
         env:
           WERF_ENV: production
