@@ -9,54 +9,22 @@ jobs:
   prod:
     runs-on: arc-runner-set
     container:
-      image: ghcr.io/werf/werf:2-stable-ubuntu
+      image: ghcr.io/homeport/werf-alpine:latest
       options: --user root
+
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v4                  # v3 уже устарел
         with:
           fetch-depth: 0
 
-      - name: Install Buildah
-        run: |
-          echo "Recreating missing apt directories..."
-          mkdir -p /var/lib/apt/lists/partial
-          mkdir -p /var/lib/apt/lists/auxlists
-          
-          echo "Updating package list..."
-          apt-get update
-          
-          echo "Installing buildah..."
-          apt-get install -y buildah
+      - name: Install kubectl
+        run: apk add --no-cache kubectl
 
-      - name: Set up rootless Buildah
-        run: |
-          echo "Setting up rootless Buildah..."
-          export BUILDAH_STORAGE_DRIVER=vfs
-          export PATH=$PATH:/usr/local/bin
-          buildah --version
-          buildah info
-
-      - name: Check required tools
-        run: |
-          echo "Checking required tools..."
-          for tool in buildah werf kubectl; do
-            if ! command -v $tool &> /dev/null; then
-              echo "ERROR: $tool is not installed or not in PATH"
-              exit 1
-            else
-              echo "$tool is available: $($tool --version || echo 'version info not available')"
-            fi
-          done
-
-      - name: Werf CI converge
-        run: |
-          echo "Running Werf converge..."
-          export PATH=$PATH:/usr/local/bin
-          export BUILDAH_STORAGE_DRIVER=vfs
-          . "$(werf ci-env github --as-file)"
-          werf converge
+      - name: Werf converge
         env:
           WERF_ENV: prod
-          GITHUB_TOKEN: ${{ secrets.REGISTRY_CLEANUP_TOKEN }}
-          WERF_KUBECONFIG_BASE64: ${{ secrets.KUBE_CONFIG_BASE64_DATA }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          WERF_KUBECONFIG_BASE64: ${{ secrets.KUBECONFIG_BASE64 }}
+        run: |
+          . "$(werf ci-env github --as-file)"
+          werf converge --repo ghcr.io/Hlebushek87/Kursovaya
