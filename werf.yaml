@@ -3,4 +3,5 @@ project: kursovaya
 ---
 image: app
 dockerfile: Dockerfile
-context: ./app
+platform:
+  - linux/amd64
