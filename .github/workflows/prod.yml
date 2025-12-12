@@ -1,25 +1,27 @@
-name: prod
+name: Test runner is alive
+
 on:
+  workflow_dispatch:
   push:
-    branches:
-      - main
+    branches: [ main ]
 
 jobs:
-  prod:
-    name: prod
+  hello:
     runs-on: arc-runner-set
-    container:
-      image: ghcr.io/werf/werf:2-stable-ubuntu
-      options: --privileged
     steps:
-      - uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
+      - name: Привет от раннера
+        run: |
+          echo "Привет! Я работаю на кластере"
+          echo "Я работаю на кластере"
+          echo "Node: $(hostname)"
+          echo "User: $(whoami)"
+          echo "UID: $(id -u)"
+          echo "CPU: $(nproc)"
+          echo "Memory: $(free -h)"
+          kubectl version --client
+          kubectl get nodes
 
-      - run: |
-          . "$(werf ci-env github --as-file)"
-          werf converge
-        env:
-          WERF_ENV: prod
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          WERF_KUBECONFIG_BASE64: ${{ secrets.KUBECONFIG_BASE64 }}
+      - name: Просто ещё одна команда (чтобы убедиться)
+        run: |
+          sleep 10
+          echo "Всё ок, я живой"
