@@ -1,14 +1,14 @@
 configVersion: 1
 project: kursovaya
 
-image: app
-dockerfile: Dockerfile
-context: ./app
+build:
+  app:
+    dockerfile: Dockerfile
+    context: ./app
 
-kubernetes:
-  namespace: default
-  deploy:
-    helm:
-      release: app
-      chart:
-        path: helm
+deploy:
+  helmRelease:
+    release: app
+    namespace: default
+    chart:
+      dir: helm
