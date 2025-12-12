@@ -1,5 +1,4 @@
 name: prod
-
 on:
   push:
     branches:
@@ -7,24 +6,31 @@ on:
 
 jobs:
   prod:
+    name: prod
     runs-on: arc-runner-set
     container:
-      image: ghcr.io/homeport/werf-alpine:latest
+      image: ubuntu:24.04          # чистый Ubuntu, никаких багов
       options: --user root
 
     steps:
-      - uses: actions/checkout@v4                  # v3 уже устарел
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Install kubectl
-        run: apk add --no-cache kubectl
+      # Одна строчка — ставим werf v2 + kubectl
+      - run: |
+          apt-get update -qq && \
+          apt-get install -y --no-install-recommends curl ca-certificates && \
+          curl -sSL https://werf.io/install.sh | bash -s -- v2 && \
+          curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl" && \
+          install -m 0755 kubectl /usr/local/bin/kubectl && \
+          rm -rf /var/lib/apt/lists/*
 
-      - name: Werf converge
+      # Точно такой же деплой, как у тебя был
+      - run: |
+          . "$(werf ci-env github --as-file)"
+          werf converge --repo ghcr.io/hlebushek87/kursovaya
         env:
           WERF_ENV: prod
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           WERF_KUBECONFIG_BASE64: ${{ secrets.KUBECONFIG_BASE64 }}
-        run: |
-          . "$(werf ci-env github --as-file)"
-          werf converge --repo ghcr.io/Hlebushek87/Kursovaya
