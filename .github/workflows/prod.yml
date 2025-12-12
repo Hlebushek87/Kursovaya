@@ -6,26 +6,19 @@ on:
 
 jobs:
   prod:
-    name: prod
     runs-on: arc-runner-set
     container:
-      image: ubuntu:24.04          # чистый Ubuntu, никаких багов
-      options: --user root
+      image: ghcr.io/werf/werf:2-stable-ubuntu   # ← вот и всё
+      # --user root можно вообще не писать — внутри уже root
 
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - run: mkdir -p /var/lib/apt/lists/{partial,auxlists}
-
+      # kubectl обычно уже есть, но если вдруг нет — поставим одной строкой
       - run: |
-          apt-get update -qq && \
-          apt-get install -y --no-install-recommends curl ca-certificates && \
-          curl -sSL https://werf.io/install.sh | bash -s -- v2 && \
-          curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl" && \
-          install -m 0755 kubectl /usr/local/bin/kubectl && \
-          rm -rf /var/lib/apt/lists/*
+          command -v kubectl || curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl" && chmod +x kubectl && mv kubectl /usr/local/bin/
 
       - run: |
           . "$(werf ci-env github --as-file)"
