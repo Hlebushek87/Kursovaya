@@ -19,7 +19,14 @@ jobs:
 
       - name: Install Buildah
         run: |
+          echo "Recreating missing apt directories..."
+          mkdir -p /var/lib/apt/lists/partial
+          mkdir -p /var/lib/apt/lists/auxlists
+          
+          echo "Updating package list..."
           apt-get update
+          
+          echo "Installing buildah..."
           apt-get install -y buildah
 
       - name: Set up rootless Buildah
