@@ -28,8 +28,10 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Deploy with werf
-        run: |
-          werf converge --repo ghcr.io/hlebushek87/kursovaya
         env:
+          WERF_BUILDER: buildkit
+          WERF_PLATFORM: linux/amd64
           WERF_ENV: production
           WERF_KUBECONFIG_BASE64: ${{ secrets.KUBECONFIG_BASE64 }}
+        run: |
+          werf converge --repo ghcr.io/hlebushek87/kursovaya
