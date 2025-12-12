@@ -1,5 +1,6 @@
 configVersion: 1
 project: kursovaya
 ---
+image: app
 dockerfile: Dockerfile
 context: ./app
