@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: app
-  namespace: {{ .Values.werf.namespace | default "default" }}
+  namespace:  {{ .Values.namespace | default "prod" }}
   labels:
     app: app
 spec:
@@ -23,7 +23,7 @@ spec:
     spec:
       containers:
         - name: app
-          image: {{ .Values.werf.image.app }}
+          image: {{ .Values.image.app }}
           imagePullPolicy: Always
           command:
             - /bin/sh
