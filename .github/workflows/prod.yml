@@ -9,10 +9,6 @@ permissions:
   contents: read
   packages: write
 
-env:
-  WERF_BUILDER: buildah
-  WERF_PLATFORM: linux/amd64
-
 jobs:
   deploy-prod:
     name: Deploy to Production
