@@ -34,6 +34,11 @@ docker build -t "ghcr.io/hlebushek87/customarcrunnerwithbuildah:latest" .
 docker push ghcr.io/hlebushek87/customarcrunnerwithbuildah
 ```
 
+Secret with private docker server credentials:
+```
+kubectl create secret docker-registry ghcr-pull-secret --docker-server=ghcr.io --docker-username=Hlebushek87 --docker-password=<PAT> -n arc-runners
+```
+
 ARC runner yaml configuration for helm chart installation:
 ```
 githubConfigUrl: https://github.com/Hlebushek87/Kursovaya
@@ -42,6 +47,8 @@ githubConfigSecret:
 template:
   spec:
     serviceAccountName: arc-runner-sa
+    imagePullSecrets:
+    - name: ghcr-pull-secret
     containers:
       - name: runner
         image: ghcr.io/hlebushek87/customarcrunnerwithbuildah:latest
