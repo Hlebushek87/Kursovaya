@@ -36,6 +36,7 @@ jobs:
           WERF_BUILDER: buildah
           WERF_CONTAINER_RUNTIME: buildah
         run: |
+          echo "WERF_CONTAINER_RUNTIME is: ${WERF_CONTAINER_RUNTIME}"
           werf build --repo ghcr.io/hlebushek87/kursovaya --container-runtime=buildah --build-out-of-tree
           werf publish --repo ghcr.io/hlebushek87/kursovaya --container-runtime=buildah
       
