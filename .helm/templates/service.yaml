@@ -2,9 +2,13 @@ apiVersion: v1
 kind: Service
 metadata:
   name: app
+  namespace: {{ .Values.namespace | default "prod" }}
 spec:
   selector:
     app: app
   ports:
-  - name: app
-    port: 80
+    - name: http
+      port: 80        # внешний порт (для клиентов внутри кластера или ingress)
+      targetPort: 8000  # порт внутри контейнера (из Deployment)
+      protocol: TCP
+  type: ClusterIP      # можно поменять на NodePort/LoadBalancer при необходимости
