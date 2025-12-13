@@ -33,13 +33,19 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Deploy with werf to Production
+      # разбиение на build publish и public в werf выполнено для отслеживания корретности workflow
+      - name: Build and push image
+        env:
+          WERF_ENV: production
+        run: |
+          werf build --repo ghcr.io/hlebushek87/kursovaya
+          werf publish --repo ghcr.io/hlebushek87/kursovaya
+      
+      - name: Deploy to Kubernetes
         env:
           WERF_ENV: production
           WERF_KUBECONFIG_BASE64: ${{ secrets.KUBECONFIG_BASE64 }}
-          WERF_BUILDER: buildkit
-          WERF_PLATFORM: linux/amd64
         run: |
           echo $WERF_KUBECONFIG_BASE64 | base64 --decode > /tmp/kubeconfig
           export KUBECONFIG=/tmp/kubeconfig
-          werf converge --repo ghcr.io/hlebushek87/kursovaya
+          werf converge --repo ghcr.io/hlebushek87/kursovaya --skip-build --skip-publish
