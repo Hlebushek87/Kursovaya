@@ -37,8 +37,8 @@ jobs:
           WERF_CONTAINER_RUNTIME: buildah # <-- КЛЮЧЕВАЯ ПЕРЕМЕННАЯ
           WERF_AUTH_FILE: /home/runner/.docker/config.json
           BUILDAH_FORMAT: docker 
-          BUILDAH_ISOLATION: chroot
-          BUILDAH_STORAGE_DRIVER: vfs
+          BUILDAH_ISOLATION: chroot
+          BUILDAH_STORAGE_DRIVER: vfs
         run: |
           export HOME=/home/runner
           export USER=runner
