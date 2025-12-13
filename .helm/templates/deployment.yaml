@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: app
-  namespace: {{ .Values.werf.namespace | default "default" }}
+  namespace: production
   labels:
     app: app
 spec:
