@@ -36,8 +36,8 @@ jobs:
           WERF_BUILDER: buildah
           WERF_CONTAINER_RUNTIME: buildah
         run: |
-          werf build --repo ghcr.io/hlebushek87/kursovaya
-          werf publish --repo ghcr.io/hlebushek87/kursovaya
+          werf build --repo ghcr.io/hlebushek87/kursovaya --container-runtime=buildah --build-out-of-tree
+          werf publish --repo ghcr.io/hlebushek87/kursovaya --container-runtime=buildah
       
       - name: Deploy to Kubernetes
         env:
