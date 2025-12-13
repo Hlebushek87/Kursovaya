@@ -27,7 +27,7 @@ def test_toggle_todo():
     toggle_resp = client.put(f"/api/todos/{todo_id}/toggle")
     assert toggle_resp.status_code == 200
     toggled = toggle_resp.json()
-    assert toggled["done"] in [True, False]  # поле done должно измениться
+    assert toggled["completed"] in [True, False]
 
 def test_delete_todo():
     # создаём задачу
