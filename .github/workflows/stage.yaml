@@ -63,3 +63,22 @@ jobs:
             --set image.app=$IMAGE_TAG \
             --namespace stage \
             --create-namespace
+            jobs:
+  k6_tests:
+    name: Run k6 Load Tests
+    runs-on: arc-runner-set
+    needs: deploy_stage
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install k6
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y k6
+
+      - name: Run k6 tests
+        run: |
+          k6 run tests/k6_todos.js
+
