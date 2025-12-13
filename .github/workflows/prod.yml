@@ -1,4 +1,4 @@
-name: CI/CD
+name: CI/CD Pipeline
 
 on:
   push:
@@ -10,53 +10,61 @@ permissions:
   packages: write
 
 jobs:
-  deploy-prod:
+  # 1. ЗАДАНИЕ НА СБОРКУ И ПУБЛИКАЦИЮ (Build & Push Job)
+  build_and_push:
+    name: Build & Push Image
+    runs-on: ubuntu-latest
+
+    outputs:
+      image_tag: ${{ steps.build-step.outputs.tag }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and Push Docker Image
+        id: build-step
+        env:
+          IMAGE_TAG: ghcr.io/${{ github.repository }}:${{ github.sha }}
+        run: |
+          echo "Building image $IMAGE_TAG..."
+          docker build . --tag $IMAGE_TAG
+          docker push $IMAGE_TAG
+          echo "tag=$IMAGE_TAG" >> $GITHUB_OUTPUT
+
+  # 2. ЗАДАНИЕ НА ДЕПЛОЙ (Deploy Job)
+  deploy_prod:
     name: Deploy to Production
+    needs: build_and_push
     runs-on: arc-runner-set
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Install werf
-        uses: werf/actions/install@v2
-
-      - name: Login to GHCR
-        uses: docker/login-action@v3
-        env:
-          DOCKER_CONFIG: ${{ runner.temp }}/docker-config
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Build and Publish with Werf (Direct Buildah)
-        env:
-          WERF_ENV: production
-          WERF_CONTAINER_RUNTIME: buildah # <-- КЛЮЧЕВАЯ ПЕРЕМЕННАЯ
-          WERF_AUTH_FILE: /home/runner/.docker/config.json
-          BUILDAH_FORMAT: docker 
-          BUILDAH_ISOLATION: chroot
-          BUILDAH_STORAGE_DRIVER: vfs
-        run: |
-          export HOME=/home/runner
-          export USER=runner
-          export WERF_CONTAINER_RUNTIME=buildah
-          export BUILDAH_FORMAT=docker
-          export BUILDAH_ISOLATION=chroot
-          export BUILDAH_STORAGE_DRIVER=vfs
-          
-          echo "Starting direct Buildah build..."
-          
-          werf build --repo ghcr.io/hlebushek87/kursovaya
-          werf publish --repo ghcr.io/hlebushek87/kursovaya
       - name: Deploy to Kubernetes
         env:
-          WERF_ENV: production
-          WERF_BUILDER: buildah
-          WERF_KUBECONFIG_BASE64: ${{ secrets.KUBECONFIG_BASE64 }}
+          IMAGE_TAG: ${{ needs.build_and_push.outputs.image_tag }}
+          KUBECONFIG_BASE64: ${{ secrets.KUBECONFIG_BASE64 }}
         run: |
-          echo $WERF_KUBECONFIG_BASE64 | base64 --decode > /tmp/kubeconfig
+          # 1. Настройка KUBECONFIG
+          echo "$KUBECONFIG_BASE64" | base64 --decode > /tmp/kubeconfig
           export KUBECONFIG=/tmp/kubeconfig
-          werf converge --repo ghcr.io/hlebushek87/kursovaya --skip-build --skip-publish
+
+          echo "Deploying image: $IMAGE_TAG"
+
+          # 2. Обновление тега образа в YAML
+          DEPLOYMENT_FILE=.helm/templates/deployment.yaml
+          yq e '.spec.template.spec.containers[0].image = "'"$IMAGE_TAG"'"' -i $DEPLOYMENT_FILE
+
+          # 3. Применение изменений
+          kubectl apply -f $DEPLOYMENT_FILE
