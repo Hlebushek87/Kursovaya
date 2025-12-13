@@ -24,6 +24,8 @@ jobs:
 
       - name: Login to GHCR
         uses: docker/login-action@v3
+        env:
+          DOCKER_CONFIG: ${{ runner.temp }}/docker-config
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -33,6 +35,10 @@ jobs:
         env:
           WERF_ENV: production
           WERF_CONTAINER_RUNTIME: buildah # <-- КЛЮЧЕВАЯ ПЕРЕМЕННАЯ
+          WERF_AUTH_FILE: /home/runner/.docker/config.json
+          BUILDAH_FORMAT: docker 
+          BUILDAH_ISOLATION: chroot
+          BUILDAH_STORAGE_DRIVER: vfs
         run: |
           export HOME=/home/runner
           export USER=runner
