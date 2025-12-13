@@ -43,8 +43,8 @@ jobs:
           export HOME=/home/runner
           export USER=runner
           echo "Starting direct Buildah build..."
-          werf build --builder=buildah --repo ghcr.io/hlebushek87/kursovaya
-          werf publish --builder=buildah --repo ghcr.io/hlebushek87/kursovaya
+          werf build --repo ghcr.io/hlebushek87/kursovaya
+          werf publish --repo ghcr.io/hlebushek87/kursovaya
       - name: Deploy to Kubernetes
         env:
           WERF_ENV: production
