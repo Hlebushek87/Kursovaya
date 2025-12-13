@@ -64,8 +64,7 @@ jobs:
           echo "Deploying image: $IMAGE_TAG"
 
           # 2. Обновление тега образа в YAML
-          DEPLOYMENT_FILE=.helm/templates/deployment.yaml
-          yq e '.spec.template.spec.containers[0].image = "'"$IMAGE_TAG"'"' -i $DEPLOYMENT_FILE
+          kubectl set image deployment/kursovaya kursovaya=$IAMGE_TAG
 
           # 3. Применение изменений
-          kubectl apply -f $DEPLOYMENT_FILE
+          kubectl rollout status deployment/kursovaya
