@@ -69,4 +69,4 @@ jobs:
           echo "Deploying image: $IMAGE_TAG"
 
           yq e '.spec.template.spec.containers[0].image = "'"$IMAGE_TAG"'"' -i k8s/deployment.yaml
-          kubectl apply -f k8s/deployment.yaml
+          kubectl apply -f .helm/templates/deployment.yaml
