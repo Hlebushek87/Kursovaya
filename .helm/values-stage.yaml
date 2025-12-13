@@ -1,0 +1,4 @@
+namespace: stage
+replicas: 1
+image:
+  app: ghcr.io/hlebushek87/kursovaya:latest
