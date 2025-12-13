@@ -1,0 +1,65 @@
+name: CI/CD Stage Pipeline
+
+on:
+  push:
+    branches: [ stage ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build_and_push:
+    name: Build & Push Image
+    runs-on: ubuntu-latest
+    outputs:
+      image_tag: ${{ steps.build-step.outputs.tag }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and Push Docker Image
+        id: build-step
+        run: |
+          REPO=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
+          IMAGE_TAG=ghcr.io/$REPO:${{ github.sha }}
+
+          docker build . --tag $IMAGE_TAG
+          docker push $IMAGE_TAG
+
+          echo "tag=$IMAGE_TAG" >> $GITHUB_OUTPUT
+
+  deploy_stage:
+    name: Deploy to Stage
+    needs: build_and_push
+    runs-on: arc-runner-set
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Deploy to Kubernetes
+        env:
+          IMAGE_TAG: ${{ needs.build_and_push.outputs.image_tag }}
+          KUBECONFIG_BASE64: ${{ secrets.KUBECONFIG_BASE64 }}
+
+        run: |
+          echo "$KUBECONFIG_BASE64" | base64 --decode > /tmp/kubeconfig
+          export KUBECONFIG=/tmp/kubeconfig
+
+          helm upgrade --install app ./.helm \
+            -f .helm/values-stage.yaml \
+            --set image.app=$IMAGE_TAG \
+            --namespace stage \
+            --create-namespace
