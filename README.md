@@ -16,8 +16,8 @@ USER runner
 
 Commands have done to build:
 ```
-docker build -t "ghcr.io/hlebushek87/customarcrunnerwithbuildah:latest" .
-docker push ghcr.io/hlebushek87/customarcrunnerwithbuildah
+docker build -t "ghcr.io/hlebushek87/customarcrunnerwithhelm:latest" .
+docker push ghcr.io/hlebushek87/customarcrunnerwithhelm
 ```
 
 Secret with private docker server credentials:
