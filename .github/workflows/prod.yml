@@ -1,55 +1,52 @@
 name: CI/CD
 
 on:
-  push:
-    branches: [ main ]
-  workflow_dispatch:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
 
 permissions:
-  contents: read
-  packages: write
+  contents: read
+  packages: write
 
 jobs:
-  deploy-prod:
-    name: Deploy to Production
-    runs-on: arc-runner-set
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+  deploy-prod:
+    name: Deploy to Production
+    runs-on: arc-runner-set
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-      - name: Install werf
-        uses: werf/actions/install@v2
+      - name: Install werf
+        uses: werf/actions/install@v2
 
-      - name: Login to GHCR
-        uses: docker/login-action@v3
-        env:
-          DOCKER_CONFIG: ${{ runner.temp }}/docker-config
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        env:
+          DOCKER_CONFIG: ${{ runner.temp }}/docker-config
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and Publish with Werf (Direct Buildah)
-        env:
-          WERF_ENV: production
-          WERF_CONTAINER_RUNTIME: buildah # <-- КЛЮЧЕВАЯ ПЕРЕМЕННАЯ
-        run: |
-          export HOME=/home/runner
-          export USER=runner
-          
-          echo "Starting direct Buildah build..."
-          
-          werf build --repo ghcr.io/hlebushek87/kursovaya
-          werf publish --repo ghcr.io/hlebushek87/kursovaya
-
-      - name: Deploy to Kubernetes
-        env:
-          WERF_ENV: production
-          WERF_BUILDER: buildah
-          WERF_KUBECONFIG_BASE64: ${{ secrets.KUBECONFIG_BASE64 }}
-        run: |
-          echo $WERF_KUBECONFIG_BASE64 | base64 --decode > /tmp/kubeconfig
-          export KUBECONFIG=/tmp/kubeconfig
-          werf converge --repo ghcr.io/hlebushek87/kursovaya --skip-build --skip-publish
+      - name: Build and Publish with Werf (Direct Buildah)
+        env:
+          WERF_ENV: production
+          WERF_CONTAINER_RUNTIME: buildah # <-- КЛЮЧЕВАЯ ПЕРЕМЕННАЯ
+        run: |
+          export HOME=/home/runner
+          export USER=runner
+          echo "Starting direct Buildah build..."
+          werf build --repo ghcr.io/hlebushek87/kursovaya
+          werf publish --repo ghcr.io/hlebushek87/kursovaya
+      - name: Deploy to Kubernetes
+        env:
+          WERF_ENV: production
+          WERF_BUILDER: buildah
+          WERF_KUBECONFIG_BASE64: ${{ secrets.KUBECONFIG_BASE64 }}
+        run: |
+          echo $WERF_KUBECONFIG_BASE64 | base64 --decode > /tmp/kubeconfig
+          export KUBECONFIG=/tmp/kubeconfig
+          werf converge --repo ghcr.io/hlebushek87/kursovaya --skip-build --skip-publish
