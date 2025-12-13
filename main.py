@@ -3,11 +3,16 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import JSONResponse
 from database import db, Todo
 from pydantic import BaseModel
+from fastapi.responses import FileResponse
 
 app = FastAPI(title="Моё To-Do приложение")
 
+@app.get("/")
+def root():
+    return FileResponse("static/index.html")
+
 # Теперь статические файлы отдаются с корня сайта
-app.mount("/", StaticFiles(directory="static", html=True), name="static")
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 class TodoCreate(BaseModel):
     title: str
@@ -33,3 +38,4 @@ async def delete_todo(todo_id: str):
     if not db.delete(todo_id):
         raise HTTPException(404, "Задача не найдена")
     return JSONResponse(status_code=200, content={"detail": "Удалено"})
+
