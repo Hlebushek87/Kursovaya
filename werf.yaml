@@ -1,7 +1,5 @@
 configVersion: 1
 project: kursovaya
-deploy:
-  namespace: "production"
 ---
 image: app
 dockerfile: Dockerfile
