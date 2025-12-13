@@ -9,24 +9,9 @@ FROM ghcr.io/actions/actions-runner:latest
 
 USER root
 
-# Установка Buildah, Podman и зависимостей
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends \
-        buildah \
-        podman \
-        fuse-overlayfs \
-        uidmap \
-    && rm -rf /var/lib/apt/lists/*
+RUN curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
 
-# Устанавливаем правильные права и домашний каталог
-RUN mkdir -p /home/runner \
-    && chown -R 1000:1000 /home/runner \
-    && echo "runner:100000:65536" >> /etc/subuid \
-    && echo "runner:100000:65536" >> /etc/subgid
-
-# Возвращаемся к непривилегированному пользователю
 USER runner
-ENV HOME=/home/runner
 ```
 
 Commands have done to build:
@@ -55,11 +40,11 @@ template:
       runAsGroup: 1000
     containers:
       - securityContext:
-          privileged: false
+          privileged: true
           capabilities:
-            add: ["SETFCAP", "MKNOD"]
+            add: ["SETFCAP", "MKNOD", "SYS_ADMIN"]
         name: runner
-        image: ghcr.io/hlebushek87/customarcrunnerwithbuildah:latest
+        image: ghcr.io/hlebushek87/customarcrunnerwithhelm:latest
         command: ["/home/runner/run.sh"]
         env:
           - name: ACTIONS_RUNNER_CONTAINER_HOOKS
@@ -70,32 +55,14 @@ template:
                 fieldPath: metadata.name
           - name: ACTIONS_RUNNER_CONTAINER_HOOK_TEMPLATE
             value: /home/runner/job-template/content
-          - name: BUILDAH_FORMAT
-            value: docker
-          - name: BUILDAH_ISOLATION
-            value: chroot
-          - name: BUILDAH_STORAGE_DRIVER
-            value: vfs
-          - name: STORAGE_DRIVER
-            value: vfs
-          - name: WERF_BUILDER_BUILD_OPTIONS
-            value: '--storage-driver=vfs'
-          - name: WERF_BUILDER_OPTIONS
-            value: '--storage-driver=vfs'
         volumeMounts:
           - name: work
             mountPath: /home/runner/_work
-          - name: job-template
-            mountPath: /home/runner/job-template
-            readOnly: true
         resources:
           requests:
             cpu: 200m
             memory: 300Mi
     volumes:
-      - name: job-template
-        configMap:
-          name: job-template-gha-runner-werf
       - name: work
         ephemeral:
           volumeClaimTemplate:
