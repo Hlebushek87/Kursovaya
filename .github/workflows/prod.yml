@@ -52,18 +52,6 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Install yq
-        run: |
-          sudo curl -L https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 \
-            -o /usr/local/bin/yq
-          sudo chmod +x /usr/local/bin/yq
-
-      - name: Install kubectl
-        run: |
-          curl -LO https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl
-          chmod +x kubectl
-          sudo mv kubectl /usr/local/bin/kubectl
-
       - name: Deploy to Kubernetes
         env:
           IMAGE_TAG: ${{ needs.build_and_push.outputs.image_tag }}
@@ -72,4 +60,4 @@ jobs:
           echo "$KUBECONFIG_BASE64" | base64 --decode > /tmp/kubeconfig
           export KUBECONFIG=/tmp/kubeconfig
 
-          helm upgrade --install app ./helm --set image.app=$IMAGE_TAG
+          helm upgrade --install app ./.helm --set image.app=$IMAGE_TAG
