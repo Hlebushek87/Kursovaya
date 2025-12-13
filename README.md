@@ -7,25 +7,26 @@ FROM ghcr.io/actions/actions-runner:latest
 ```
 FROM ghcr.io/actions/actions-runner:latest
 
-# 1. ПЕРЕКЛЮЧАЕМСЯ НА ROOT для системных операций
 USER root
 
-# Установка Buildah и зависимостей для rootless-режима
+# Установка Buildah, Podman и зависимостей
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
         buildah \
+        podman \
         fuse-overlayfs \
         uidmap \
     && rm -rf /var/lib/apt/lists/*
 
-# Рекомендуемые настройки для Buildah rootless в контейнерах:
-# Добавление subuid/subgid записей для пользователя runner
-RUN echo "runner:100000:65536" >> /etc/subuid && \
-    echo "runner:100000:65536" >> /etc/subgid
+# Устанавливаем правильные права и домашний каталог
+RUN mkdir -p /home/runner \
+    && chown -R 1000:1000 /home/runner \
+    && echo "runner:100000:65536" >> /etc/subuid \
+    && echo "runner:100000:65536" >> /etc/subgid
 
-# 2. ВОЗВРАЩАЕМСЯ К ПОЛЬЗОВАТЕЛЮ RUNNER для безопасности
-# (Пользователь "runner" - стандартный для этого базового образа)
+# Возвращаемся к непривилегированному пользователю
 USER runner
+ENV HOME=/home/runner
 ```
 
 Commands have done to build:
@@ -49,8 +50,15 @@ template:
     serviceAccountName: arc-runner-sa
     imagePullSecrets:
     - name: ghcr-pull-secret
+    securityContext:
+      runAsUser: 1000
+      runAsGroup: 1000
     containers:
-      - name: runner
+      - securityContext:
+          privileged: false
+          capabilities:
+            add: ["SETFCAP", "MKNOD"]
+        name: runner
         image: ghcr.io/hlebushek87/customarcrunnerwithbuildah:latest
         command: ["/home/runner/run.sh"]
         env:
@@ -62,6 +70,18 @@ template:
                 fieldPath: metadata.name
           - name: ACTIONS_RUNNER_CONTAINER_HOOK_TEMPLATE
             value: /home/runner/job-template/content
+          - name: BUILDAH_FORMAT
+            value: docker
+          - name: BUILDAH_ISOLATION
+            value: chroot
+          - name: BUILDAH_STORAGE_DRIVER
+            value: vfs
+          - name: STORAGE_DRIVER
+            value: vfs
+          - name: WERF_BUILDER_BUILD_OPTIONS
+            value: '--storage-driver=vfs'
+          - name: WERF_BUILDER_OPTIONS
+            value: '--storage-driver=vfs'
         volumeMounts:
           - name: work
             mountPath: /home/runner/_work
