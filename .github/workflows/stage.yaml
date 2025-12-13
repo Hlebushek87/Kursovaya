@@ -63,7 +63,6 @@ jobs:
             --set image.app=$IMAGE_TAG \
             --namespace stage \
             --create-namespace
-            jobs:
   k6_tests:
     name: Run k6 Load Tests
     runs-on: arc-runner-set
