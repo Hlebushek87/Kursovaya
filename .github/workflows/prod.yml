@@ -38,13 +38,13 @@ jobs:
           BUILDAH_STORAGE_DRIVER: vfs
           STORAGE_DRIVER: vfs
         run: |
-          echo "--- ENVIRONMENT CHECK ---"
-          echo "WERF_CONTAINER_RUNTIME: ${WERF_CONTAINER_RUNTIME}"
-          echo "BUILDAH_STORAGE_DRIVER: ${BUILDAH_STORAGE_DRIVER}"
+          echo "--- ENVIRONMENT CHECK ---"
+          echo "WERF_CONTAINER_RUNTIME: ${WERF_CONTAINER_RUNTIME}"
+          echo "BUILDAH_STORAGE_DRIVER: ${BUILDAH_STORAGE_DRIVER}"
           echo "-------------------------"
-          werf build --repo ghcr.io/hlebushek87/kursovaya
-          werf publish --repo ghcr.io/hlebushek87/kursovaya
-      
+          werf build --repo ghcr.io/hlebushek87/kursovaya
+          werf publish --repo ghcr.io/hlebushek87/kursovaya
+
       - name: Deploy to Kubernetes
         env:
           WERF_ENV: production
