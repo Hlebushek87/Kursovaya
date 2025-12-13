@@ -1,68 +1,55 @@
 name: CI/CD
 
 on:
-  push:
-    branches: [ main ]
-  workflow_dispatch:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
 
 permissions:
-  contents: read
-  packages: write
+  contents: read
+  packages: write
 
 jobs:
-  deploy-prod:
-    name: Deploy to Production
-    runs-on: arc-runner-set
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+  deploy-prod:
+    name: Deploy to Production
+    runs-on: arc-runner-set
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-      - name: Install werf
-        uses: werf/actions/install@v2
+      - name: Install werf
+        uses: werf/actions/install@v2
 
-      - name: Login to GHCR
-        uses: docker/login-action@v3
-        env:
-          # Указываем Docker-клиенту использовать домашнюю директорию пользователя
-          DOCKER_CONFIG: ${{ runner.temp }}/docker-config
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        env:
+          DOCKER_CONFIG: ${{ runner.temp }}/docker-config
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
-      # разбиение на build publish и public в werf выполнено для отслеживания корретности workflow
-      - name: Setup Podman and Run Werf
-        env:
-          WERF_ENV: production
-        run: |
-          # Явно устанавливаем домашнюю директорию (на случай, если она не установлена)
-          export HOME=/home/runner
-          export USER=runner
-          # 1. Инициализация и запуск Podman в rootless-режиме
-          podman system migrate # Обновление хранилища, если необходимо
-          podman system service --time=0 & # Запускаем сервис в фоне
-          export DOCKER_HOST="unix:///run/user/$(id -u)/podman/podman.sock"
+      - name: Build and Publish with Werf (Direct Buildah)
+        env:
+          WERF_ENV: production
+          WERF_CONTAINER_RUNTIME: buildah # <-- КЛЮЧЕВАЯ ПЕРЕМЕННАЯ
+        run: |
+          export HOME=/home/runner
+          export USER=runner
+          
+          echo "Starting direct Buildah build..."
+          
+          werf build --repo ghcr.io/hlebushek87/kursovaya
+          werf publish --repo ghcr.io/hlebushek87/kursovaya
 
-          # 2. Ждем, пока сокет будет доступен
-          echo "Waiting for Podman socket..."
-          while [ ! -S "$DOCKER_HOST" ]; do
-              sleep 1
-          done
-          echo "Podman socket is ready."
-
-          # 3. Выполняем werf, используя сокет Podman (DOCKER_HOST)
-          # Werf автоматически переключится на Podman/Buildah, если видит DOCKER_HOST
-          werf build --repo ghcr.io/hlebushek87/kursovaya
-          werf publish --repo ghcr.io/hlebushek87/kursovaya
-
-      - name: Deploy to Kubernetes
-        env:
-          WERF_ENV: production
-          WERF_BUILDER: buildah
-          WERF_KUBECONFIG_BASE64: ${{ secrets.KUBECONFIG_BASE64 }}
-        run: |
-          echo $WERF_KUBECONFIG_BASE64 | base64 --decode > /tmp/kubeconfig
-          export KUBECONFIG=/tmp/kubeconfig
-          werf converge --repo ghcr.io/hlebushek87/kursovaya --skip-build --skip-publish
+      - name: Deploy to Kubernetes
+        env:
+          WERF_ENV: production
+          WERF_BUILDER: buildah
+          WERF_KUBECONFIG_BASE64: ${{ secrets.KUBECONFIG_BASE64 }}
+        run: |
+          echo $WERF_KUBECONFIG_BASE64 | base64 --decode > /tmp/kubeconfig
+          export KUBECONFIG=/tmp/kubeconfig
+          werf converge --repo ghcr.io/hlebushek87/kursovaya --skip-build --skip-publish
