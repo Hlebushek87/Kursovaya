@@ -26,6 +26,13 @@ jobs:
       - name: Install werf
         uses: werf/actions/install@v2
 
+      - name: Buildah Action
+        uses: redhat-actions/buildah-build@v2
+        with:
+          image: ghcr.io/Hlebushek87/Kursovaya
+          tags: latest ${{ github.sha }}
+          containerfiles: ./Dockerfile
+
       - name: Login to GHCR
         uses: docker/login-action@v3
         with:
