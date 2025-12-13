@@ -42,7 +42,13 @@ jobs:
         run: |
           export HOME=/home/runner
           export USER=runner
+          export WERF_CONTAINER_RUNTIME=buildah
+          export BUILDAH_FORMAT=docker
+          export BUILDAH_ISOLATION=chroot
+          export BUILDAH_STORAGE_DRIVER=vfs
+          
           echo "Starting direct Buildah build..."
+          
           werf build --repo ghcr.io/hlebushek87/kursovaya
           werf publish --repo ghcr.io/hlebushek87/kursovaya
       - name: Deploy to Kubernetes
