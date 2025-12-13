@@ -36,7 +36,9 @@ jobs:
 
       - name: Run pytest (Unit tests)
         run: |
+          export PYTHONPATH=$PYTHONPATH:$(pwd)
           pytest --maxfail=1 --disable-warnings -q
+
 
   build_and_push:
     name: Build & Push Image
