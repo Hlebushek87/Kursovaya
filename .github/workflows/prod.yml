@@ -37,10 +37,23 @@ jobs:
         env:
           WERF_ENV: production
         run: |
+          # Явно устанавливаем домашнюю директорию (на случай, если она не установлена)
           export HOME=/home/runner
           export USER=runner
+          # 1. Инициализация и запуск Podman в rootless-режиме
+          podman system migrate # Обновление хранилища, если необходимо
+          podman system service --time=0 & # Запускаем сервис в фоне
+          export DOCKER_HOST="unix:///run/user/$(id -u)/podman/podman.sock"
 
-          # Просто вызываем werf, который должен напрямую использовать Buildah
+          # 2. Ждем, пока сокет будет доступен
+          echo "Waiting for Podman socket..."
+          while [ ! -S "$DOCKER_HOST" ]; do
+              sleep 1
+          done
+          echo "Podman socket is ready."
+
+          # 3. Выполняем werf, используя сокет Podman (DOCKER_HOST)
+          # Werf автоматически переключится на Podman/Buildah, если видит DOCKER_HOST
           werf build --repo ghcr.io/hlebushek87/kursovaya
           werf publish --repo ghcr.io/hlebushek87/kursovaya
 
