@@ -30,18 +30,24 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       # разбиение на build publish и public в werf выполнено для отслеживания корретности workflow
-      - name: Build and push image
+      - name: Setup Podman and Run Werf
         env:
           WERF_ENV: production
-          WERF_BUILDER: buildah
-          WERF_CONTAINER_RUNTIME: buildah
-          BUILDAH_STORAGE_DRIVER: vfs
-          STORAGE_DRIVER: vfs
         run: |
-          echo "--- ENVIRONMENT CHECK ---"
-          echo "WERF_CONTAINER_RUNTIME: ${WERF_CONTAINER_RUNTIME}"
-          echo "BUILDAH_STORAGE_DRIVER: ${BUILDAH_STORAGE_DRIVER}"
-          echo "-------------------------"
+          # 1. Инициализация и запуск Podman в rootless-режиме
+          podman system migrate # Обновление хранилища, если необходимо
+          podman system service --time=0 & # Запускаем сервис в фоне
+          export DOCKER_HOST="unix:///run/user/$(id -u)/podman/podman.sock"
+
+          # 2. Ждем, пока сокет будет доступен
+          echo "Waiting for Podman socket..."
+          while [ ! -S "$DOCKER_HOST" ]; do
+              sleep 1
+          done
+          echo "Podman socket is ready."
+
+          # 3. Выполняем werf, используя сокет Podman (DOCKER_HOST)
+          # Werf автоматически переключится на Podman/Buildah, если видит DOCKER_HOST
           werf build --repo ghcr.io/hlebushek87/kursovaya
           werf publish --repo ghcr.io/hlebushek87/kursovaya
 
