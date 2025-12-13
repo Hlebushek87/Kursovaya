@@ -1,7 +1,0 @@
-configVersion: 1
-project: kursovaya
----
-image: app
-dockerfile: Dockerfile
-platform:
-  - linux/amd64
