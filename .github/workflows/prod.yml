@@ -24,8 +24,6 @@ jobs:
 
       - name: Login to GHCR
         uses: docker/login-action@v3
-        env:
-          DOCKER_CONFIG: ${{ runner.temp }}/docker-config
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -39,8 +37,8 @@ jobs:
           export HOME=/home/runner
           export USER=runner
           echo "Starting direct Buildah build..."
-          werf build --repo ghcr.io/hlebushek87/kursovaya
-          werf publish --repo ghcr.io/hlebushek87/kursovaya
+          werf build --builder=buildah --repo ghcr.io/hlebushek87/kursovaya
+          werf publish --builder=buildah --repo ghcr.io/hlebushek87/kursovaya
       - name: Deploy to Kubernetes
         env:
           WERF_ENV: production
