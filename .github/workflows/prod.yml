@@ -31,14 +31,19 @@ jobs:
 
       # разбиение на build publish и public в werf выполнено для отслеживания корретности workflow
       - name: Build and push image
-        env:
-          WERF_ENV: production
-          WERF_BUILDER: buildah
-          WERF_CONTAINER_RUNTIME: buildah
-        run: |
-          echo "WERF_CONTAINER_RUNTIME is: ${WERF_CONTAINER_RUNTIME}"
-          werf build --repo ghcr.io/hlebushek87/kursovaya --container-runtime=buildah --build-out-of-tree
-          werf publish --repo ghcr.io/hlebushek87/kursovaya --container-runtime=buildah
+        env:
+          WERF_ENV: production
+          WERF_BUILDER: buildah
+          WERF_CONTAINER_RUNTIME: buildah
+          BUILDAH_STORAGE_DRIVER: vfs
+          STORAGE_DRIVER: vfs
+        run: |
+          echo "--- ENVIRONMENT CHECK ---"
+          echo "WERF_CONTAINER_RUNTIME: ${WERF_CONTAINER_RUNTIME}"
+          echo "BUILDAH_STORAGE_DRIVER: ${BUILDAH_STORAGE_DRIVER}"
+          echo "-------------------------"
+          werf build --repo ghcr.io/hlebushek87/kursovaya
+          werf publish --repo ghcr.io/hlebushek87/kursovaya
       
       - name: Deploy to Kubernetes
         env:
