@@ -10,7 +10,7 @@ permissions:
   packages: write
 
 env:
-  WERF_BUILDER: buildkit
+  WERF_BUILDER: buildah
   WERF_PLATFORM: linux/amd64
 
 jobs:
