@@ -37,6 +37,8 @@ jobs:
         env:
           WERF_ENV: production
         run: |
+          # Явно устанавливаем домашнюю директорию (на случай, если она не установлена)
+          export HOME=/home/runner
           # 1. Инициализация и запуск Podman в rootless-режиме
           podman system migrate # Обновление хранилища, если необходимо
           podman system service --time=0 & # Запускаем сервис в фоне
