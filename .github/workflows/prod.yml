@@ -34,6 +34,7 @@ jobs:
         env:
           WERF_ENV: production
           WERF_BUILDER: buildah
+          WERF_CONTAINER_RUNTIME: buildah
         run: |
           werf build --repo ghcr.io/hlebushek87/kursovaya
           werf publish --repo ghcr.io/hlebushek87/kursovaya
