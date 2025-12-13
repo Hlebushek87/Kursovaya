@@ -72,7 +72,4 @@ jobs:
           echo "$KUBECONFIG_BASE64" | base64 --decode > /tmp/kubeconfig
           export KUBECONFIG=/tmp/kubeconfig
 
-          echo "Deploying image: $IMAGE_TAG"
-
-          yq e '.spec.template.spec.containers[0].image = "'"$IMAGE_TAG"'"' -i .helm/templates/deployment.yaml
-          kubectl apply -f .helm/templates/deployment.yaml
+          helm upgrade --install app ./helm --set image.app=$IMAGE_TAG
