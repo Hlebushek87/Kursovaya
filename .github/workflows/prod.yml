@@ -62,4 +62,6 @@ jobs:
           echo "$KUBECONFIG_BASE64" | base64 --decode > /tmp/kubeconfig
           export KUBECONFIG=/tmp/kubeconfig
 
+          kubectl get namespace prod || kubectl create namespace prod
+
           helm upgrade --install app ./.helm --set image.app=$IMAGE_TAG
