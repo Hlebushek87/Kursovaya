@@ -89,8 +89,8 @@ jobs:
           echo "$KUBECONFIG_BASE64" | base64 --decode > /tmp/kubeconfig
           export KUBECONFIG=/tmp/kubeconfig
 
-          helm upgrade --install app ./.helm \
-            -f .helm/values-dev.yaml \
+          helm upgrade --install app ./helm \
+            -f helm/values-dev.yaml \
             --set image.app=$IMAGE_TAG \
             --namespace dev \
             --create-namespace
