@@ -20,13 +20,11 @@ function renderTodo(todo) {
         <button class="delete-btn">Удалить</button>
     `;
 
-    // Переключение статуса
     li.querySelector('input[type="checkbox"]').addEventListener('change', async (e) => {
         await fetch(`/api/todos/${todo.id}/toggle`, { method: 'PUT' });
         loadTodos();
     });
 
-    // Удаление
     li.querySelector('.delete-btn').addEventListener('click', async () => {
         await fetch(`/api/todos/${todo.id}`, { method: 'DELETE' });
         loadTodos();
@@ -35,7 +33,6 @@ function renderTodo(todo) {
     todoList.appendChild(li);
 }
 
-// Добавление новой задачи
 async function addTodo() {
     const title = todoInput.value.trim();
     if (!title) return;
@@ -55,5 +52,5 @@ todoInput.addEventListener('keypress', (e) => {
     if (e.key === 'Enter') addTodo();
 });
 
-// Загрузка при старте
+
 loadTodos();
