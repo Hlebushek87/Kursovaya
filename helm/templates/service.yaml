@@ -8,7 +8,7 @@ spec:
     app: app
   ports:
     - name: http
-      port: 80        # внешний порт (для клиентов внутри кластера или ingress)
-      targetPort: 8000  # порт внутри контейнера (из Deployment)
+      port: 80
+      targetPort: 8000
       protocol: TCP
-  type: ClusterIP      # можно поменять на NodePort/LoadBalancer при необходимости
+  type: ClusterIP
