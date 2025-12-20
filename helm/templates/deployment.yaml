@@ -49,10 +49,10 @@ spec:
             failureThreshold: 3
           resources:
             requests:
-              cpu: 150m
+              cpu: 99m
               memory: 128Mi
             limits:
-              cpu: 200m
+              cpu: 99m
               memory: 128Mi
       restartPolicy: Always
       terminationGracePeriodSeconds: 30
