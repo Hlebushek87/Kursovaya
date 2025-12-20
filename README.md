@@ -1,4 +1,4 @@
-1# Kursovaya 
+# Kursovaya 
  
 Custom Dockerfile to speedup ci/cd:
 
