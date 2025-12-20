@@ -11,13 +11,11 @@ app = FastAPI(title="Моё To-Do приложение")
 def root():
     return FileResponse("static/index.html")
 
-# Теперь статические файлы отдаются с корня сайта
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 class TodoCreate(BaseModel):
     title: str
 
-# API
 @app.post("/api/todos", response_model=Todo)
 async def create_todo(todo: TodoCreate):
     return db.create(todo.title)
@@ -38,4 +36,5 @@ async def delete_todo(todo_id: str):
     if not db.delete(todo_id):
         raise HTTPException(404, "Задача не найдена")
     return JSONResponse(status_code=200, content={"detail": "Удалено"})
+
 
